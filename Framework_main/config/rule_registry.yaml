@@ -1,0 +1,12 @@
+rules:
+  - rule_id: R001
+    rule_type: table_exists
+
+  - rule_id: R002
+    rule_type: count_check
+
+  - rule_id: R003
+    rule_type: null_check
+
+  - rule_id: R004
+    rule_type: duplicate_check

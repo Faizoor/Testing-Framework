@@ -1,0 +1,11 @@
+# Snowflake Snowpark
+snowflake-snowpark-python==1.45.0
+
+# Environment variable management
+python-dotenv==1.0.1
+
+# YAML configuration parsing
+PyYAML==6.0.2
+
+# Optional but useful
+pandas==2.2.2

@@ -1,0 +1,39 @@
+execution_config:
+  run_type: All   # Sanity / Functional / All
+ 
+testcases:
+ 
+  # ---- S3 File Check ----
+  - rule_type: table_exists
+    test_type: Sanity
+    enabled: true
+    object_name: "table_name"
+
+ 
+  # ---- Source vs Target Count ----
+  - rule_type: count_check
+    test_type: Functional
+    enabled: true
+    threshold: 0
+    parameters:
+      Soource table: "RAW_DB.STAGE_SCHEMA.SOURCE_TABLE"
+      target_table: "CURATED_DB.PROD_SCHEMA.TARGET_TABLE"
+      filter_condition: "load_date = CURRENT_DATE"
+ 
+  # ---- Null Check ----
+  - rule: null_check
+    test_type: Functional
+    enabled: true
+    threshold: 0
+    object_name: "CURATED_DB.PROD_SCHEMA.CUSTOMER_TABLE"
+    parameters:
+      column_name: "CUSTOMER_ID"
+ 
+  # ---- Duplicate Check ----
+  - rule: duplicate_check
+    test_type: Functional
+    enabled: true
+    threshold: 0
+    object_name: "CURATED_DB.PROD_SCHEMA.ORDER_TABLE"
+    parameters:
+      column_name: "ORDER_ID"
