@@ -1,5 +1,5 @@
 .venv/
-/lib/__pycache__/
+Framework_main/lib/__pycache__/
 
 .DS_Store
 
