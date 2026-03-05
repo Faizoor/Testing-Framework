@@ -1,12 +1,12 @@
 ################################################################################################
 # Snowpark Data Quality Testing Framework
 ################################################################################################
-import yaml 
 from snowflake.snowpark import Session
 from dotenv import load_dotenv
+from pathlib import Path
 import os 
 import logging 
-from lib import checks, validator, config_load
+from lib import checks, validator, config_load, registry
 import pandas as pd
 import csv
 
@@ -29,10 +29,8 @@ class SnowparkValidationRunner():
         self.session= session
         self.yaml_path = yaml_path
         self.config = config_load.config_loader(yaml_path)
-        #logger.info(self.config.get('tables'))
-        logger.info(self.config)
-        
-    
+
+         
 
 
     def execute(self):
@@ -41,11 +39,49 @@ class SnowparkValidationRunner():
         """
 
         ##Start tests
-        run_type = self.config['execution_config']
-        logger.info(f"Test type we are going to check now: {run_type['run_type']}")
+        test_results=[]
+        run_type = self.config['execution_config']['run_type']
+        logger.info(f"Test type we are going to check now: {run_type}")
 
+        logger.info(f"Processing test cases one by one")
+        test_cases=self.config['testcases']
 
+        try:
+            for test_case in test_cases:
+                #logger.info(f"test_case: {test_case}")
+                object_name = test_case['object_name']
+                parameters = test_case['parameters']
+                testtype = test_case['test_type'].strip().lower()
+                rule_type= test_case['rule_type'].strip().lower()
+                #logger.info(f"test registry{registry.TEST_REGISTRY}")
 
+                test_function = registry.TEST_REGISTRY.get(testtype)
+                #print(test_function)
+
+                if not test_function:
+                    logger.info(f"unknown function Identified please register this function {test_function} in the test registry")
+                    continue
+
+                test_result=test_function(
+                    object_name,
+                    parameters,
+                    logger,
+                    self.session,
+                    rule_type,
+                    registry.check_registry
+                )
+                logger.info(f"result: {test_result}")
+                test_results.append(test_result)
+
+            logger.info(f"test resutls: {test_results}")
+        except Exception as e :
+            logger.error(f"Need to add the failure message:{type(e)} {str(e)}")
+
+#        return {
+#            "sanity":sanity_check_result,
+#            "Functional":functional_check_result,
+           
+#        }
 
     def _get_summary(self,results):
         """
@@ -90,7 +126,8 @@ if __name__ == "__main__":
     """
 
     load_dotenv()
-    yaml_path = "Framework_main/config/config.yaml"
+    base_dir = Path(__file__).resolve().parent
+    yaml_path = base_dir/"config"/"config.yaml"
 
     logging.basicConfig(
         level=logging.INFO,
@@ -98,8 +135,8 @@ if __name__ == "__main__":
     )
     logger=logging.getLogger(("snowpark_testing"))
 
-    logging.getLogger("snowflake").setLevel(logging.WARNING)
-    logging.getLogger("snowflake.snowpark").setLevel(logging.WARNING)
+    logging.getLogger("snowflake").setLevel(logging.ERROR)
+    logging.getLogger("snowflake.snowpark").setLevel(logging.ERROR)
 
     connection_parameters = {
     "account": os.environ["SNOWFLAKE_ACCOUNT"],
@@ -118,7 +155,7 @@ if __name__ == "__main__":
         #logger.info(f"results: {results}")
 
     # Export the output as csv format 
-        snowpark_testing.write_results_csv(results)
+        #snowpark_testing.write_results_csv(results)
 
 
     except Exception as e :
