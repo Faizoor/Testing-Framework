@@ -1,6 +1,8 @@
 ################################################################################################
 # Snowpark Data Quality Testing Framework
 ################################################################################################
+from pyexpat import errors
+
 from snowflake.snowpark import Session
 from dotenv import load_dotenv
 from pathlib import Path
@@ -9,12 +11,14 @@ import logging
 from lib import checks, validator, config_load, registry
 import pandas as pd
 import csv
+from datetime import datetime
+from collections import Counter
 
 
 class SnowparkValidationRunner():
     """ 
         Main class for running Sanity and Functional checks for Data Quality Testing Framework.
-            - sanity_checks: checks to validate the existence of objects and basic checks before running DQ validations
+            - sanity_checks: checks to validate the existence of objects and basic checks 
             - functional_checks: checks to validate the data quality based on the rules defined in the config file
             parameters:
                 session: Snowflake session object
@@ -68,21 +72,18 @@ class SnowparkValidationRunner():
                     logger,
                     self.session,
                     rule_type,
+                    testtype,
                     registry.check_registry,
                     registry.Evaluation_registry
                 )
                 #logger.info(f"result: {test_result}")
                 test_results.append(test_result)
 
-            logger.info(f"test resutls: {test_results}")
+            #logger.info(f"test resutls: {test_results}")
         except Exception as e :
             logger.error(f"Need to add the failure message:{type(e)} {str(e)}")
 
-#        return {
-#            "sanity":sanity_check_result,
-#            "Functional":functional_check_result,
-           
-#        }
+        return test_results
 
     def _get_summary(self,results):
         """
@@ -103,19 +104,23 @@ class SnowparkValidationRunner():
 
     def write_results_csv(self,results):
         """
-        Write the results to a csv file in the local directory
+        log the summary and write the results to a csv file in the local directory or a specified location
         """
-        rows=[]
+        file_name = f"test_results_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
 
-        for category in ["sanity","Functional"]:
-            rows.extend(
-                [{'category':category,**item}for item in results[category]]
-            )
+        summary=self._get_summary(results)
 
-        df=pd.DataFrame(rows)
-        df.to_csv("test_result.csv",index=False)
+        logger.info("===== Data Quality Report =====")
+        logger.info(f"Total Tests : {summary['total']}")
+        logger.info(f"Passed      : {summary['passed']}")
+        logger.info(f"Failed      : {summary['failed']}")
+        logger.info(f"Errors      : {summary['error']}")
 
-        logger.info(f"Results written to test_result.csv")
+        with open(file_name, mode='w', newline='') as file:
+            writer=csv.DictWriter(file,fieldnames=results[0].keys())
+            writer.writeheader()
+            writer.writerows(results)
+        logger.info(f"Results written to {file_name}")
        
 
         
@@ -153,10 +158,10 @@ if __name__ == "__main__":
     #create Framework Object 
         snowpark_testing = SnowparkValidationRunner( session, yaml_path  )
         results=snowpark_testing.execute()
-        #logger.info(f"results: {results}")
+        logger.info(f"results: {results}")
 
     # Export the output as csv format 
-        #snowpark_testing.write_results_csv(results)
+        snowpark_testing.write_results_csv(results)
 
 
     except Exception as e :

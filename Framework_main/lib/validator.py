@@ -1,6 +1,6 @@
 
 
-def sanity_checks(object_name,parameters,logger,session,rule_type,check_registry,Evaluation_registry):
+def sanity_checks(object_name,parameters,logger,session,rule_type,testtype,check_registry,Evaluation_registry):
 
     """
     Execute sanity checks 
@@ -40,27 +40,19 @@ def sanity_checks(object_name,parameters,logger,session,rule_type,check_registry
     else:
         logger.info(f"Sanity check error: {rule_type} for {object_name}")
 
-    sanity_results.append(
-            {
-                "object_name" :object_name,
+    
+    return  { 
                 "rule_type":rule_type,
+                "test_type":testtype,
+                "object_name" :object_name,
                 "status" : status,
                 "message": message
             }
-    )
-    #logger.info(f"sanity result: {sanity_results}")
-
-    return sanity_results
-
-
-def _evaluate_functional_result(result, operator, expected):
-    """
-    Evaluate the result of a functional check based on rule type
-    """
 
 
 
-def functional_checks(object_name,parameters,logger,session,rule_type,check_registry,Evaluation_registry):
+
+def functional_checks(object_name,parameters,logger,session,rule_type,testtype,check_registry,Evaluation_registry):
     """
     Execute functional checks for DQ validations with flexible evaluation
     
@@ -94,14 +86,11 @@ def functional_checks(object_name,parameters,logger,session,rule_type,check_regi
         status="ERROR"
         message=  str(e).split("\n")[-1].strip()
 
-    functional_results.append(
-            {
-                "object_name" :object_name,
+
+    return  {
                 "rule_type":rule_type,
+                "test_type":testtype,
+                "object_name" :object_name,
                 "status" : status,
                 "message": message
             }
-    )
-    #logger.info(f"functional result: {functional_results}")
-    
-    return functional_results

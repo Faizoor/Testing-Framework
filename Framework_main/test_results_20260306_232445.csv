@@ -1,0 +1,4 @@
+rule_type,test_type,object_name,status,message
+table_exists,sanity,UUDX_CORE.ERR.UOR_GALAXY_GENERATED_STATEMENTS_ERROR,ERROR,Database 'UUDX_CORE' does not exist or not authorized.
+count_check,functional,UDX_CORE.STAGE.STG_UOR_GALAXY_GENERATED_STATEMENTS_test,PASS,Count check passed: source count 38 matches target count 38
+null_check,functional,UDX_CORE.STAGE.STG_UOR_GALAXY_GENERATED_STATEMENTS,FAIL,Null check failed: Found 1 null values.
