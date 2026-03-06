@@ -68,9 +68,10 @@ class SnowparkValidationRunner():
                     logger,
                     self.session,
                     rule_type,
-                    registry.check_registry
+                    registry.check_registry,
+                    registry.Evaluation_registry
                 )
-                logger.info(f"result: {test_result}")
+                #logger.info(f"result: {test_result}")
                 test_results.append(test_result)
 
             logger.info(f"test resutls: {test_results}")

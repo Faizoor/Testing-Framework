@@ -1,47 +1,107 @@
 
-def sanity_checks(object_name,parameters,logger,session,rule_type,check_registry):
+
+def sanity_checks(object_name,parameters,logger,session,rule_type,check_registry,Evaluation_registry):
 
     """
     Execute sanity checks 
     """
-
     sanity_results=[]
+    status=None
+    message=None
 
-    logger.info(f"Running sanity checks")
-    logger.info(f"object: {object_name}")
-    logger.info(f"parameters: {parameters}")
-    logger.info(f"rule type: {rule_type}")
+    try:
+        logger.info(f"Running sanity checks for {object_name} with rule type {rule_type}")
+        logger.info(f"object: {object_name}")
+        logger.info(f"parameters: {parameters}")
+        logger.info(f"rule type: {rule_type}")
 
-    if rule_type not in check_registry:
-        raise ValueError(f"Unsupported sanity check")
-    check_function = check_registry[rule_type]
+        if rule_type not in check_registry:
+            raise ValueError(f"Unsupported sanity check")
+        check_function = check_registry[rule_type]
 
-    logger.info(f"Running {rule_type} ")
-    df=check_function(object_name,parameters,session)
-    value=df.count()
-    logger.info(f"value:{value}")
+        logger.info(f"Running {rule_type} ")
+        df=check_function(object_name,parameters,session)
+        logger.info(f"Sanity check result: {df.show()}")
+        value=df.count()
+        logger.info(f"value:{value}")
 
-    status="PASS" if value>0 else "FAIL"
+        status="PASS" if value>0 else "FAIL"
+        
+    except Exception as e:
+        status="ERROR"
+        message=  str(e).split("\n")[-1].strip()
+
     if status=="PASS":
-        logger.info(f"Sanity check: rule  on object: {object_name} with rule type: {rule_type} has PASSED")
+        logger.info(f"Sanity check passed: {rule_type} for {object_name}")
+        message=f"Sanity check passed object {object_name} exists"
+    elif status=="FAIL":
+        logger.info(f"Sanity check failed: {rule_type} for {object_name}")
+        message=f"Sanity check failed object {object_name} does not exist"
     else:
-        logger.info(f"Sanity check: rule_id - on object: {object_name} with rule type: {rule_type} has FAILED")
-
+        logger.info(f"Sanity check error: {rule_type} for {object_name}")
 
     sanity_results.append(
             {
                 "object_name" :object_name,
                 "rule_type":rule_type,
-                "status" : status
+                "status" : status,
+                "message": message
             }
     )
-    logger.info(f"sanity result: {sanity_results}")
+    #logger.info(f"sanity result: {sanity_results}")
 
     return sanity_results
 
 
-def functional_checks(object_name,parameters,logger,session,rule_type,check_registry):
-    '''
-    Execute functional checks for DQ validations
-    '''
-    pass
+def _evaluate_functional_result(result, operator, expected):
+    """
+    Evaluate the result of a functional check based on rule type
+    """
+
+
+
+def functional_checks(object_name,parameters,logger,session,rule_type,check_registry,Evaluation_registry):
+    """
+    Execute functional checks for DQ validations with flexible evaluation
+    
+    Different rule types may return different results:
+    """
+    functional_results=[]
+    status=None
+    message=None
+    
+    try:
+        logger.info(f"Running Functional checks for {object_name} with rule type: {rule_type}")
+        logger.info(f"object: {object_name}")
+        logger.info(f"parameters: {parameters}")
+        logger.info(f"rule type: {rule_type}")
+
+        if rule_type not in check_registry:
+            raise ValueError(f"Unsupported functional check {rule_type}")
+        check_function = check_registry[rule_type]
+
+        result=check_function(object_name,parameters,session)
+        logger.info(f"Functional check result: {result}")
+
+        # Evaluate the result based on rule type
+        if rule_type not in Evaluation_registry:
+            raise ValueError(f"Unsupported evaluation for rule type {rule_type}")
+        evaluation_function = Evaluation_registry[rule_type]
+
+        status, message  = evaluation_function(result, logger)
+    
+    except Exception as e:
+        status="ERROR"
+        message=  str(e).split("\n")[-1].strip()
+
+    functional_results.append(
+            {
+                "object_name" :object_name,
+                "rule_type":rule_type,
+                "status" : status,
+                "message": message
+            }
+    )
+    #logger.info(f"functional result: {functional_results}")
+    
+    return functional_results

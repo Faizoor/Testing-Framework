@@ -6,34 +6,36 @@ from snowflake.snowpark.functions import col
 
 
 
-def null_check(object_name,column_names,session):
+def null_check(object_name,parameters,session):
+    """
+    Check for null values in specified columns
+    
+    Parameters:
+        - columns: List of column names to check
+        
+    Returns:
+        DataFrame with rows containing null values
+    """
     try:
-        Full_table_name=object_name.strip()
-        parts = Full_table_name.split('.')
+        table_name=object_name.strip()
 
-        database, schema, table_name = [p.upper() for p in parts]
-
-        df = session.table(f"{database}.{schema}.{table_name}")
-
-        # ensure requested columns actually exist in the table;
-        existing_cols = [x.lower() for x in df.columns]
-        missing = [c for c in column_names if c.lower() not in existing_cols]
-        if missing:
-            raise ValueError(f"Column(s) {missing} not found in {object_name}")
+        df = session.table(table_name)
+        column_names = parameters['column_name']
 
         condition = None
 
+        # Build condition to check for nulls in any specified column
         for c in column_names:
             expr = col(c).is_null()
             condition = expr if condition is None else condition | expr
 
-        df = df.filter(condition)
+        df= df.filter(condition)
 
-        return df
+        return df.count()
 
     except Exception as e:
-        #print(str(e))
         raise ValueError(str(e))
+
 
 
 def table_exists(object_name,parameters,session):
@@ -54,6 +56,36 @@ def table_exists(object_name,parameters,session):
     except Exception as e:
         raise ValueError(str(e)) 
   
+
+def count_check(object_name,parameters,session):
+    """
+    Compare row counts between source and target tables
+    
+    Parameters:
+        - target_table: Name of the target table to compare against
+        - threshold: Optional - acceptable difference (default 0)
+        
+    Returns:
+        Dict with source_count, target_count, and difference
+    """
+    try:
+        source_table=object_name.strip()
+        target_table=parameters['target_table'].strip()
+
+        source_df=session.table(source_table)
+        target_df=session.table(target_table)
+
+        source_count=source_df.count()
+        target_count=target_df.count()
+
+        return {
+            "source_count": source_count,
+            "target_count": target_count,
+            "difference": abs(source_count - target_count)
+        }
+
+    except Exception as e:
+        raise ValueError(str(e)) 
 
 def duplicate_check():
     pass

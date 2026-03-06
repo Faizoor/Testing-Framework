@@ -7,7 +7,7 @@ testcases:
   - rule_type: table_exists
     test_type: Sanity
     enabled: true
-    object_name: "UDX_CORE.ERR.UOR_GALAXY_GENERATED_STATEMENTS_ERROR"
+    object_name: "UUDX_CORE.ERR.UOR_GALAXY_GENERATED_STATEMENTS_ERROR"
     parameters:
 
  
@@ -15,23 +15,23 @@ testcases:
   - rule_type: count_check
     test_type: Functional
     enabled: true
-    object_name: "RAW_DB.STAGE_SCHEMA.SOURCE_TABLE"
+    object_name: "UDX_CORE.STAGE.STG_UOR_GALAXY_GENERATED_STATEMENTS_test"
     parameters:
-      target_table: "CURATED_DB.PROD_SCHEMA.TARGET_TABLE"
+      target_table: "UDX_CORE.CONFORM.GENERATED_STATEMENTS"
       filter_condition: "load_date = CURRENT_DATE"
  
   # ---- Null Check ----
   - rule_type: null_check
     test_type: Functional
     enabled: False
-    object_name: "CURATED_DB.PROD_SCHEMA.CUSTOMER_TABLE"
+    object_name: "UDX_CORE.STAGE.STG_UOR_GALAXY_GENERATED_STATEMENTS"
     parameters:
-      column_name: "CUSTOMER_ID"
+      column_name: ["record_content"]
  
   # ---- Duplicate Check ----
-  - rule_type: duplicate_check
-    test_type: Functional
-    enabled: true
-    object_name: "CURATED_DB.PROD_SCHEMA.ORDER_TABLE"
-    parameters:
-      column_name: "ORDER_ID"
+ # - rule_type: duplicate_check
+ #   test_type: Functional
+ #   enabled: true
+ #   object_name: "CURATED_DB.PROD_SCHEMA.ORDER_TABLE"
+ #   parameters:
+ #     column_name: "ORDER_ID"

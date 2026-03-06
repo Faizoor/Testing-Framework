@@ -1,16 +1,25 @@
-from lib.validator import *
-from lib.checks import *
+from lib import checks, validator, functional_evaluator
 
 
 TEST_REGISTRY = {
-    "sanity": sanity_checks,
-    "functional": functional_checks
+    "sanity": validator.sanity_checks,
+    "functional": validator.functional_checks
 }
 
 check_registry= {
-    "stage_exists" : stage_exists,
-    "table_exists" : table_exists,
-    "null_check" : null_check,
-    "duplicate_check" : duplicate_check
+    #sanity checks
+    "stage_exists" : checks.stage_exists,
+    "table_exists" : checks.table_exists,
 
+    #functional checks
+    "null_check" : checks.null_check,
+    "duplicate_check" : checks.duplicate_check,
+    "count_check" : checks.count_check
+
+}
+
+Evaluation_registry={
+    "null_check": functional_evaluator._evaluate_null_check,
+    "duplicate_check": functional_evaluator._evaluate_duplicate_check,
+    "count_check": functional_evaluator._evaluate_count_check
 }
