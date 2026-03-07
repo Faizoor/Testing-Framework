@@ -1,18 +1,15 @@
 ################################################################################################
 # Snowpark Data Quality Testing Framework
 ################################################################################################
-from pyexpat import errors
-
 from snowflake.snowpark import Session
 from dotenv import load_dotenv
 from pathlib import Path
 import os 
 import logging 
-from lib import checks, validator, config_load, registry
-import pandas as pd
+from core import registry
+from utils import config_load
 import csv
 from datetime import datetime
-from collections import Counter
 
 
 class SnowparkValidationRunner():
@@ -52,15 +49,19 @@ class SnowparkValidationRunner():
 
         try:
             for test_case in test_cases:
-                #logger.info(f"test_case: {test_case}")
+
+                #Run only the test cases which are enabled 
+                if not test_case.get('enabled', False):
+                    logger.info(f"Skipping disabled test case: {test_case['rule_type']} the for object {test_case['object_name']}")
+                    continue
                 object_name = test_case['object_name']
                 parameters = test_case['parameters']
                 testtype = test_case['test_type'].strip().lower()
                 rule_type= test_case['rule_type'].strip().lower()
-                #logger.info(f"test registry{registry.TEST_REGISTRY}")
+
 
                 test_function = registry.TEST_REGISTRY.get(testtype)
-                #print(test_function)
+
 
                 if not test_function:
                     logger.info(f"unknown function Identified please register this function {test_function} in the test registry")
@@ -85,6 +86,7 @@ class SnowparkValidationRunner():
 
         return test_results
 
+
     def _get_summary(self,results):
         """
         Return summary of the checks with total, passed, failed and error counts
@@ -106,7 +108,7 @@ class SnowparkValidationRunner():
         """
         log the summary and write the results to a csv file in the local directory or a specified location
         """
-        file_name = f"test_results_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+        file_path = f"reports/test_results_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
 
         summary=self._get_summary(results)
 
@@ -116,11 +118,11 @@ class SnowparkValidationRunner():
         logger.info(f"Failed      : {summary['failed']}")
         logger.info(f"Errors      : {summary['error']}")
 
-        with open(file_name, mode='w', newline='') as file:
+        with open(file_path, mode='w', newline='') as file:
             writer=csv.DictWriter(file,fieldnames=results[0].keys())
             writer.writeheader()
             writer.writerows(results)
-        logger.info(f"Results written to {file_name}")
+        logger.info(f"Results written to {file_path}")
        
 
         

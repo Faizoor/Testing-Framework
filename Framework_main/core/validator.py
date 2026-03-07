@@ -6,8 +6,8 @@ def sanity_checks(object_name,parameters,logger,session,rule_type,testtype,check
     Execute sanity checks 
     """
     sanity_results=[]
-    status=None
-    message=None
+    status="ERROR"
+    message="Unknown error during sanity check"
 
     try:
         logger.info(f"Running sanity checks for {object_name} with rule type {rule_type}")
@@ -59,9 +59,9 @@ def functional_checks(object_name,parameters,logger,session,rule_type,testtype,c
     Different rule types may return different results:
     """
     functional_results=[]
-    status=None
-    message=None
-    
+    status="ERROR"
+    message="Unknown error during functional check"
+
     try:
         logger.info(f"Running Functional checks for {object_name} with rule type: {rule_type}")
         logger.info(f"object: {object_name}")

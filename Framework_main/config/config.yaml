@@ -29,9 +29,9 @@ testcases:
       column_name: ["record_content"]
  
   # ---- Duplicate Check ----
- # - rule_type: duplicate_check
- #   test_type: Functional
- #   enabled: true
- #   object_name: "CURATED_DB.PROD_SCHEMA.ORDER_TABLE"
- #   parameters:
- #     column_name: "ORDER_ID"
+  - rule_type: duplicate_check
+    test_type: Functional
+    enabled: true
+    object_name: "CURATED_DB.PROD_SCHEMA.ORDER_TABLE"
+    parameters:
+      column_name: "ORDER_ID"

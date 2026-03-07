@@ -1,4 +1,5 @@
-from lib import checks, validator, functional_evaluator
+from core import functional_evaluator, validator
+from lib import checks
 
 
 TEST_REGISTRY = {
